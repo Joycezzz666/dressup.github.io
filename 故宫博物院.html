@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>故宫博物院 - 六朝文物志</title>
+    <style>
+        body {
+            font-family: "SimSun", "STSong", "Songti SC", serif;
+            background-color: #f4ecd8; /* 宣纸色背景 */
+            color: #5d4037;
+            margin: 0;
+            padding: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 42px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            margin: 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #8b4513;
+            text-decoration: none;
+            border: 1px solid #8b4513;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .back-link:hover {
+            background-color: #8b4513;
+            color: #fff;
+        }
+        .category-section {
+            margin-bottom: 50px;
+        }
+        .category-title {
+            font-size: 28px;
+            border-bottom: 2px solid #8b4513;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            letter-spacing: 3px;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .item {
+            background-color: #fdf5e6;
+            border: 1px solid #dcd0b9;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .item img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            display: block;
+        }
+        .item-title {
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>故宫博物院</h1>
+        <a href="map.html" class="back-link">返回地图</a>
+    </div>
+
+    <div class="category-section">
+        <h2 class="category-title">发髻</h2>
+        <div class="gallery">
+            <div class="item">
+                <img src="发髻/列女仁智图（局部）_发簪与发钗_故宫博物馆.png" alt="列女仁智图（局部）_发簪与发钗">
+                <div class="item-title">列女仁智图（局部）_发簪与发钗</div>
+            </div>
+            <div class="item">
+                <img src="发髻/洛神赋图》（第一卷）（局部）_故宫博物馆.png" alt="洛神赋图》（第一卷）（局部）">
+                <div class="item-title">洛神赋图》（第一卷）（局部）</div>
+            </div>
+            <div class="item">
+                <img src="发髻/高髻_故宫博物院.png" alt="高髻">
+                <div class="item-title">高髻</div>
+            </div>
+        </div>
+    </div>
+    <div class="category-section">
+        <h2 class="category-title">妆容</h2>
+        <div class="gallery">
+            <div class="item">
+                <img src="妆容/洛神赋图_故宫博物馆.png" alt="洛神赋图">
+                <div class="item-title">洛神赋图</div>
+            </div>
+        </div>
+    </div>
+    <div class="category-section">
+        <h2 class="category-title">服装</h2>
+        <div class="gallery">
+            <div class="item">
+                <img src="服装/右衽长袖矮领服长裙_故宫博物院.png" alt="右衽长袖矮领服长裙">
+                <div class="item-title">右衽长袖矮领服长裙</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
