@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>六朝文物博物馆地图</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            /* 全局宋体，营造古风感 */
+            font-family: "SimSun", "STSong", "Songti SC", serif;
+            background-color: #f4ecd8; /* 宣纸色背景 */
+        }
+        #map {
+            width: 100%;
+            height: 100vh;
+            background-color: #f4ecd8;
+        }
+
+        /* 标题样式 */
+        .title-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            text-align: center;
+            background: rgba(244, 236, 216, 0.85); /* 半透明宣纸色 */
+            padding: 15px 40px;
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            pointer-events: none; /* 不遮挡地图操作 */
+        }
+        .main-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #5d4037;
+            margin: 0;
+            letter-spacing: 4px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .sub-title {
+            font-size: 16px;
+            color: #8d6e63;
+            margin: 8px 0 0 0;
+            font-style: italic;
+        }
+
+        /* 引言文字样式 - 蓝绿色调 */
+        .description-container {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            z-index: 1000;
+            max-width: 320px;
+            background: rgba(204, 221, 221, 0.85); /* 带有透明度的浅蓝绿色 */
+            padding: 20px;
+            border-left: 3px solid #004d40; /* 深邃的青绿色边框 */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+        .description-text {
+            font-size: 15px;
+            color: #00332e; /* 深青色文字，确保可读性 */
+            line-height: 1.8;
+            text-align: justify;
+            text-indent: 2em; /* 首行缩进 */
+        }
+
+        /* 博物馆按钮样式 */
+        .museum-button {
+            background-color: #fdf5e6; /* 象牙色 */
+            border: 2px solid #5d4037; /* 深褐木色 */
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #5d4037;
+            white-space: nowrap;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .museum-button:hover {
+            background-color: #8b4513;
+            color: #fff;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.4);
+            z-index: 2000 !important;
+        }
+
+        /* 自定义标记容器，确保按钮不会因为 Leaflet 默认样式而偏移 */
+        .museum-button-container {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        /* 返回首页按钮 */
+        .home-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1001; /* 确保在标题层级之上 */
+            color: #8b4513;
+            text-decoration: none;
+            font-weight: bold;
+            border: 2px solid #8b4513;
+            padding: 8px 20px;
+            background: rgba(244, 236, 216, 0.85);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .home-link:hover {
+            background: #8b4513;
+            color: #f4ecd8;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+<a href="index.html" class="home-link">返回首页</a>
+
+<div class="title-container">
+    <h1 class="main-title">寻踪六朝：文物地图志</h1>
+    <p class="sub-title">点击博物馆，解锁散落的历史碎片</p>
+</div>
+
+<div class="description-container">
+    <p class="description-text">本地图汇聚各大博物馆六朝女性精品文物，以发髻、服饰、鞋履、妆容、饰品、生活用品六大类别，完整呈现六朝女子的生活美学。轻点博物馆坐标，即可遍览青瓷妆具、金钗步摇、陶俑衣饰、画像砖身影，触摸一段温柔而雅致的六朝时光。</p>
+</div>
+
+<div id="map"></div>
+
+<script>
+    // 初始化地图，设置在中国中心位置，允许缩放以看到大英博物馆
+    var map = L.map('map', {
+        zoomControl: true,
+        scrollWheelZoom: true,
+        attributionControl: false,
+        minZoom: 2 // 允许缩放看到全球
+    }).setView([35.0, 108.0], 5);
+
+    // 更换为高德地图（Amap）瓦片源
+    var amapLayer = L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+        subdomains: '1234',
+        maxZoom: 18,
+        minZoom: 2,
+        attribution: '&copy; 高德地图'
+    }).addTo(map);
+
+    // 目标省份列表（博物馆所在地）
+    var targetProvinces = ["北京市", "陕西省", "江苏省", "辽宁省", "河南省", "山西省", "河北省", "甘肃省", "新疆维吾尔自治区"];
+
+    // 藏青色古风样式 - 增强了边界感，使其看起来更像墨迹勾勒
+    var highlightStyle = {
+        fillColor: "#2e4e7e", // 古风藏青色
+        weight: 2,           // 增加线宽
+        opacity: 0.8,
+        color: '#5d4037',     // 深褐色边界，模拟墨水颜色
+        fillOpacity: 0.25,
+        dashArray: '5, 5'     // 虚线效果，更具古籍手绘感
+    };
+
+    // 获取中国省份 GeoJSON 数据
+    fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+        .then(response => response.json())
+        .then(data => {
+            L.geoJSON(data, {
+                filter: function(feature) {
+                    return targetProvinces.indexOf(feature.properties.name) !== -1;
+                },
+                style: highlightStyle
+            }).addTo(map);
+        });
+
+    // 尝试获取并高亮英国（大英博物馆所在地）
+    fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+        .then(response => response.json())
+        .then(data => {
+            L.geoJSON(data, {
+                filter: function(feature) {
+                    // 匹配英国
+                    return feature.properties.ADMIN === "United Kingdom";
+                },
+                style: highlightStyle
+            }).addTo(map);
+        })
+        .catch(err => console.log("英国地理数据加载失败，仅显示点标记 ", err));
+
+    // 14个博物馆及其详细信息，手动调整坐标以防止重叠
+    var museums = [
+        // 陕西
+        { name: "西安博物馆", location: [34.24, 108.94], url: "西安博物馆.html" },
+        { name: "陕西历史博物馆", location: [33.50, 108.95], url: "陕西历史博物馆.html" }, // 向南偏移
+        
+        // 北京
+        { name: "故宫博物院", location: [39.91, 116.40], url: "故宫博物院.html" },
+        { name: "中国国家博物馆", location: [39.10, 116.40], url: "中国国家博物馆.html" }, // 向南偏移
+        
+        // 江苏
+        { name: "六朝博物馆", location: [32.04, 118.79], url: "六朝博物馆.html" },
+        { name: "南京市博物馆", location: [31.20, 118.77], url: "南京市博物馆.html" }, // 向南偏移
+        
+        // 河南
+        { name: "洛阳古墓博物馆", location: [34.72, 112.41], url: "洛阳古墓博物馆.html" },
+        { name: "汉魏洛阳古城遗址博物馆", location: [34.0, 112.45], url: "汉魏洛阳古城遗址博物馆.html" }, // 新增，并向南偏移
+
+        // 其他省份
+        { name: "辽宁省博物馆", location: [41.70, 123.46], url: "辽宁省博物馆.html" },
+        { name: "大同博物馆", location: [40.06, 113.33], url: "大同博物馆.html" },
+        { name: "磁县北朝考古博物馆", location: [36.37, 114.38], url: "磁县北朝考古博物馆.html" },
+        { name: "高台县博物馆", location: [39.38, 99.85], url: "高台县博物馆.html" },
+        { name: "新疆维吾尔自治区博物馆", location: [43.82, 87.62], url: "新疆维吾尔自治区博物馆.html" },
+
+        // 海外
+        { name: "大英博物馆", location: [51.519, -0.127], url: "大英博物馆.html" }
+    ];
+
+    museums.forEach(function(museum) {
+        // 创建自定义的 div 图标作为按钮
+        var buttonIcon = L.divIcon({
+            className: 'museum-button-container',
+            html: '<button class="museum-button">' + museum.name + '</button>',
+            iconSize: [null, null],
+            iconAnchor: [50, 20] // 将锚点设置在按钮中心附近
+        });
+
+        // 在地图上添加标记
+        var marker = L.marker(museum.location, { icon: buttonIcon }).addTo(map);
+        
+        // 点击标记打开链接
+        marker.on('click', function() {
+            window.open(museum.url, '_blank');
+        });
+
+        // 鼠标悬停提示
+        marker.bindTooltip("点击探索 " + museum.name, {
+            direction: 'top',
+            offset: [0, -10],
+            className: 'custom-tooltip'
+        });
+    });
+
+    // 解决地图显示不全的问题
+    function refreshMap() {
+        setTimeout(function() {
+            map.invalidateSize(true);
+        }, 300);
+    }
+    window.onload = refreshMap;
+    window.onresize = refreshMap;
+</script>
+
+</body>
+</html>

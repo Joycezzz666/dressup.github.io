@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>锦绣霓裳 - 六朝换装</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: "SimSun", "STSong", "Songti SC", serif;
+            background-color: #f4ecd8;
+            color: #5d4037;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        /* 主换装区域容器 */
+        .main-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            border-bottom: 5px double #8b4513;
+        }
+
+        /* 左侧展示区 */
+        .preview-area {
+            flex: 1;
+            position: relative;
+            background-image: url('换装衣服/换装页面整体背景1.jpg');
+            background-size: cover;
+            background-position: center;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 画布图层叠加 */
+        .canvas-container {
+            position: relative;
+            width: 80vh;
+            height: 80vh;
+            background-color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 10px solid #8b4513;
+            overflow: hidden;
+        }
+
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        /* 重新定义的 z-index 层级 */
+        #layer-background   { z-index: 1; object-fit: cover; }
+        #layer-furniture    { z-index: 2; object-fit: contain; } 
+        #layer-base         { z-index: 3; } 
+        #layer-acc-jewelry  { z-index: 4; } /* 臂饰/镯子：放在衣服(6)后面 */
+        #layer-shoes        { z-index: 5; } 
+        #layer-clothes      { z-index: 6; } 
+        #layer-makeup       { z-index: 7; } 
+        #layer-acc-hairpin  { z-index: 8; } 
+        #layer-hair         { z-index: 9; } 
+        #layer-acc-head     { z-index: 10; } 
+        #layer-acc-ear      { z-index: 11; } 
+        #layer-acc-pizi     { z-index: 12; } /* 披子 */
+        #layer-acc-shendai  { z-index: 13; } /* 绅带 */
+
+        /* 左侧边缘按钮 */
+        .side-controls {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background-color: #8b4513;
+            color: #f4ecd8;
+            border: 2px solid #5d4037;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.2);
+            writing-mode: vertical-rl;
+            letter-spacing: 4px;
+        }
+
+        .control-btn:hover {
+            background-color: #a0522d;
+            transform: scale(1.1);
+        }
+
+        .control-btn.active {
+            background-color: #5d4037;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* 右侧操作面板 */
+        .options-area {
+            width: 400px;
+            background-color: #fdf5e6;
+            border-left: 4px solid #8b4513;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .panel-header {
+            padding: 20px;
+            background-color: #8b4513;
+            color: #f4ecd8;
+            text-align: center;
+            font-size: 24px;
+            letter-spacing: 4px;
+        }
+
+        /* 二级分类导航 (仅在点击“换装”时显示) */
+        .category-nav {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+            background-color: #e0d5b8;
+            gap: 5px;
+            border-bottom: 1px solid #8b4513;
+        }
+
+        .nav-item {
+            flex: 1;
+            min-width: 80px;
+            padding: 8px;
+            text-align: center;
+            background-color: #f4ecd8;
+            border: 1px solid #8b4513;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: #8b4513;
+            color: #fff;
+        }
+
+        /* 物品列表 */
+        .item-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            align-content: start;
+            border-bottom: 2px solid #8b4513;
+        }
+
+        /* 科普文案区域 */
+        .info-panel {
+            height: 200px;
+            padding: 20px;
+            background-color: #f4ecd8;
+            overflow-y: auto;
+            border-top: 1px solid #dcd0b9;
+        }
+
+        .info-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #8b4513;
+            margin-bottom: 10px;
+            border-left: 4px solid #8b4513;
+            padding-left: 10px;
+        }
+
+        .info-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #5d4037;
+            text-align: justify;
+        }
+
+        .item-card {
+            background-color: #fff;
+            border: 1px solid #dcd0b9;
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .item-card:hover {
+            border-color: #8b4513;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .item-card img {
+            width: 100%;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+
+        .item-card span {
+            font-size: 13px;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 生活用品独立展示区 */
+        .furniture-section {
+            padding: 60px 40px;
+            background-image: url('换装衣服/换装页面整体背景2.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* 视差效果 */
+            text-align: center;
+            position: relative;
+        }
+
+        /* 添加半透明蒙版以确保卡片可读 */
+        .furniture-section::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(244, 236, 216, 0.6);
+            z-index: 0;
+        }
+
+        .section-title, .furniture-grid {
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-title {
+            font-size: 32px;
+            color: #8b4513;
+            margin-bottom: 40px;
+            position: relative;
+            display: inline-block;
+            letter-spacing: 8px;
+        }
+
+        .section-title::after, .section-title::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 100px;
+            height: 2px;
+            background: #8b4513;
+        }
+
+        .section-title::before { right: 100%; margin-right: 20px; }
+        .section-title::after { left: 100%; margin-left: 20px; }
+
+        .furniture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .furniture-card {
+            background-color: #fdf5e6;
+            border: 2px solid #8b4513;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .furniture-card:hover {
+            transform: scale(1.05);
+            box-shadow: 8px 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .furniture-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #dcd0b9;
+            padding-bottom: 10px;
+        }
+
+        .furniture-card h3 {
+            margin: 0;
+            color: #8b4513;
+            font-size: 20px;
+        }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 40px;
+        }
+
+        .modal-content {
+            background-color: #f4ecd8;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            display: flex;
+            position: relative;
+            border: 5px solid #8b4513;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 40px;
+            color: #8b4513;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .modal-left {
+            flex: 1;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-left img {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+
+        .modal-right {
+            width: 350px;
+            padding: 40px 30px;
+            overflow-y: auto;
+            border-left: 2px solid #8b4513;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            color: #8b4513;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #8b4513;
+            padding-bottom: 10px;
+        }
+
+        .modal-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #5d4037;
+            text-align: justify;
+        }
+
+        /* 返回首页按钮 */
+        .home-link {
+            position: absolute;
+            top: 20px;
+            right: 420px;
+            z-index: 100;
+            color: #8b4513;
+            text-decoration: none;
+            font-weight: bold;
+            border: 1px solid #8b4513;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.5);
+        }
+
+        .home-link:hover {
+            background: #8b4513;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-link">返回首页</a>
+
+    <div class="main-container">
+        <div class="preview-area">
+            <div class="side-controls">
+                <button class="control-btn" id="btn-bg">切换背景</button>
+                <button class="control-btn active" id="btn-outfit">锦绣换装</button>
+            </div>
+
+            <div class="canvas-container">
+                <img id="layer-background" class="layer" src="换装衣服/初始背景.jpg">
+                <img id="layer-furniture" class="layer" style="display:none;">
+                <img id="layer-base" class="layer" src="换装衣服/初始形象.png">
+                <img id="layer-shoes" class="layer" style="display:none;">
+                <img id="layer-clothes" class="layer" style="display:none;">
+                <img id="layer-makeup" class="layer" style="display:none;">
+                <img id="layer-acc-hairpin" class="layer" style="display:none;">
+                <img id="layer-hair" class="layer" style="display:none;">
+                <img id="layer-acc-head" class="layer" style="display:none;">
+                <img id="layer-acc-ear" class="layer" style="display:none;">
+                <img id="layer-acc-jewelry" class="layer" style="display:none;">
+                <img id="layer-acc-pizi" class="layer" style="display:none;">
+                <img id="layer-acc-shendai" class="layer" style="display:none;">
+            </div>
+        </div>
+
+        <div class="options-area">
+            <div class="panel-header" id="panel-title">锦绣换装</div>
+            <div class="category-nav" id="category-nav">
+                <div class="nav-item active" data-cat="hair">头发</div>
+                <div class="nav-item" data-cat="makeup">妆容</div>
+                <div class="nav-item" data-cat="clothes">衣服</div>
+                <div class="nav-item" data-cat="shoes">鞋子</div>
+                <div class="nav-item" data-cat="accessories">饰品</div>
+            </div>
+            <div class="item-list" id="item-list">
+                <!-- 动态生成 -->
+            </div>
+            <div class="info-panel" id="info-panel">
+                <div class="info-title" id="info-title">文物有话说</div>
+                <div class="info-content" id="info-content">
+                    点击上方物品，查看相关的历史科普文案。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：生活用品独立展示区 -->
+    <div class="furniture-section">
+        <h2 class="section-title">生活用品</h2>
+        <div class="furniture-grid" id="furniture-grid">
+            <!-- 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 新增：弹窗组件 -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" id="modal-close">&times;</span>
+            <div class="modal-left">
+                <img id="modal-img" src="" alt="">
+            </div>
+            <div class="modal-right">
+                <h2 class="modal-title" id="modal-title">物品名称</h2>
+                <div class="modal-text" id="modal-text">科普内容加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 图片数据
+        const data = {
+            background: [
+                { name: "初始背景", file: "初始背景.jpg" },
+                { name: "背景一", file: "背景1.jpg" },
+                { name: "背景二", file: "背景2.jpg" },
+                { name: "背景三", file: "背景3.jpg" }
+            ],
+            hair: [
+                { name: "云髻", file: "头发_云髻.png", info: "我是“云髻”，我的最大特点就是一个字：高——高耸入云、巍峨如山，所以古人常用“云髻峨峨”来形容我。你若翻翻南朝的诗文，就能看到我的身影：梁朝诗人沈满愿在《咏步花》诗中写道“用持插云髻，翡翠比光辉”，说的就是把我梳得高高，再插上翡翠步摇，那光彩简直能与珠宝争辉。" },
+                { name: "垂髾", file: "头发_垂髾.png", info: "我是“垂髾髻”，我的标志性特征是髻后飘着一绺垂发，走起路来轻轻摇曳，颇有动感。《女史箴图》《列女仁智图》中的贵妇们最爱用我搭配高耸的发髻，再于额前斜插两支金花步摇，华贵中透着飘逸。不过，我可不是贵族专属，为贵妇打扇的侍女、田间劳作的农妇也梳着我，只是发髻上少了那些贵重的金银首饰。" },
+                { name: "堕马髻", file: "头发_堕马髻.png", info: "我是“堕马髻”——东汉名媛的“慵懒风”发型。我的最大特点就是侧在一边，发髻偏侧下垂，仿佛刚刚从马背上坠下时那松散的瞬间，因而得名“堕马髻”。要说谁把我带火的，那必须是东汉大将军梁冀的妻子孙寿——这位“色美而善为妖态”的时尚女子，不仅梳着我，还配上一套“愁眉、啼妆、折腰步、龋齿笑”的组合技。" },
+                { name: "惊鹊髻", file: "头发_惊鹊髻.png", info: "我是“惊鹊髻”，我原兴于魏宫中，前身叫“惊鹤髻”。在魏晋南北朝，我的模样是两扇羽翼形，宛如仙鹤受惊、展翅欲飞。你若去甘肃天水麦积山的北魏壁画里找找，那些伎乐天女的发髻，就是我典型的惊鹤姿态。后来我演变为惊鹊，但那份灵动不改，在唐代及五代依旧盛行不衰。" },
+                { name: "灵蛇髻", file: "头发_灵蛇髻.png", info: "我是“灵蛇髻”，相传魏文帝皇后甄氏每日梳妆时，宫中总有一缕绿蛇盘结成形在她面前，她心生灵感便效仿梳成发髻，因而得名“灵蛇髻”。据《采兰杂志》记载，这发髻每日形状不同，宫人想模仿也学不来十之一二。我的特征是发丝在顶部掠起，汇成一股或双股，再盘成屈曲扭转、如游蛇蜿蜒的形状。你若想看看我的模样，可以去找晋代顾恺之的《洛神赋图》——图中的洛神梳的就是我。" },
+                { name: "盘桓髻", file: "头发_盘桓髻.png", info: "我是“盘桓髻”，我的特点是发髻大多堆集于头顶，层层叠叠、宛如云朵，因而得名“盘桓”。若说灵蛇髻是屈曲扭转如游蛇，那我便是盘旋堆叠如层云。" },
+                { name: "蝉鬓", file: "头发_蝉鬓.png", info: "我是“蝉鬓”，我的真身是两鬓薄如蝉翼的那一缕发丝，因而也得名“薄鬓”“云鬓”，从魏晋南北朝一直沿袭到唐宋。南朝徐陵在《玉台新咏·序》里写我“妆鸣蝉之薄鬓”，唐代李百药夸我“云光鬓里薄”，施肩吾笔下的“云鬓慵梳”、梁元帝吟咏的“妆成理蝉鬓”，都是在说我的轻盈飘逸。我的诞生还有段传奇——据晋代崔豹《古今注》记载，我是魏文帝宫人莫琼树所创，“缥缈如蝉”，故称“蝉鬓”。" },
+                { name: "螺髻", file: "头发_螺髻.png", info: "我是“螺髻”——将长发向右萦绕、在头顶盘成高耸螺形的发髻。我的身影遍布南北朝的石窟与画卷，你若翻开《北齐校书图》，那些女侍梳的正是我。这些珍贵的文物遗存，就是我的实物证明，没错，我就是那个从石窟壁画里走出来的螺旋发型。" },
+                { name: "飞天髻", file: "头发_飞天髻.png", info: "我是“飞天髻”，我始于南北朝，式样浪漫飘逸，因与佛教艺术有关而得名，你看那石窟壁画里的飞天，发髻高耸、灵动欲飞，那就是我的灵感来源。我不仅美，还很长情：因为契合唐代女子的审美口味，我得以延续；历两宋至明代，依旧流行不衰。" },
+                { name: "高髻", file: "头发_高髻.png", info: "我是“高髻”，我是对梳挽在头顶的发髻的统称，早在战国时就出现在歌舞艺人头上，到了东汉以后才渐渐被妇女采用，而真正让我流行起来的，是魏晋南北朝。唐许嵩在《建康实录》里写南方少数民族“或堆高髻”，可见我早已不限于中原。庾信在《春赋》里写“髻鬟高而畏风”，可见我高得让人担心被风吹倒。刘孝仪在《艳体连珠》里夸我：“洛妃高髻，不资于芳泽”。" }
+            ],
+            makeup: [
+                { name: "半面妆", file: "妆容_半面妆.png", info: "我是“半面妆”，我的真身，是只妆饰半边面颊的妆容，或是左右两半着不同颜色的粉黛，望去宛如两人拼就——这般奇妆，出自南朝梁元帝之妃徐昭佩之手。《南史·梁元帝徐妃传》中记下了这段往事：徐妃乃梁朝将军徐琨之女，本有姿容，却因入宫后不得元帝礼遇，心生怨怼。元帝自幼眇一目，徐妃每知帝将至，“必为半面妆以俟，帝见则大怒而出”，她以半边妆容，嘲弄这位只能看见半边世界的君王。我虽名为妆饰，却从不为悦己者容。我是一半素面、一半红粉的荒诞，以半面之姿，留给历史一个孤傲的背影。" },
+                { name: "墨妆", file: "妆容_墨妆.png", info: "我是“墨妆”，我的真身是以黛色饰面、不施脂粉的妆容，发源于北周大象元年（579年）前后。当红妆、紫妆在六朝宫廷争艳时，我却以一抹墨色悄然登场，《隋书·五行志》载：“后周大象元年……妇人墨妆黄眉。”唐代宇文氏《妆台记》亦云：“后周静帝，令宫人黄眉墨妆。”从此，我与黄眉相伴，成了北朝宫廷里一道别样的风景。我的诞生，说来有些传奇。彼时北周民风彪悍，崇武之风盛行，女子亦染豪迈之气；加之物质条件所限，妆饰之物未必充裕。然爱美之心人皆有之，宫人们便就地取材，以杉木灰炭研磨成粉，施于眉际额间。这般妆法，虽无红紫之艳，却以墨色强化眉目轮廓，平添几分英气。唐代画家张萱在《疑耀》中便记下了我的后世形态：“墨妆即黛，今妇人以杉木灰研末抹额，即其制也。”至于北周时的颜料材质，今已无据可考，但这份就地取材的巧思，却随典籍流传千年。黄眉配墨妆，在色彩搭配中或许算不上上乘，却恰是那个时代的特殊印记。当满朝朱紫贵、六朝红粉香时，我以一抹墨色立于北周女子的眉额之间，不施粉黛，却自有风骨。" },
+                { name: "斜红", file: "妆容_斜红.png", info: "我是“斜红”，我的真身，是妆饰于眉鬓之间的一抹艳红，形如月牙，色泽鮮红，或画于单侧，或对称两颊；有的故意描成残破状貌，宛若刀痕，亦有作卷曲花纹者。我的诞生，源自一段深宫传说，五代张泌《妆楼记》中记下这个故事：魏文帝曹丕宫中有一美人薛夜来，甚得宠爱。一夜，文帝读书至深夜，夜来欲添衣，不慎撞上水晶屏风，顿时脸颊鲜血直流，愈后留下一道疤痕。文帝非但不嫌弃，反而对她恩爱有加。宫中女子见了，心生羡慕，便纷纷以胭脂在脸上画一道血痕，取名“晚霞妆”，久而久之，便演化成了我——斜红。我的身影，在南朝诗文中亦有迹可循，南朝梁简文帝《艳歌篇》中写道：“分妆间浅靥，绕脸傅斜红。”酒窝旁点缀着淡淡妆容，脸颊两侧抹上斜斜的胭脂红晕，说的便是我。唐代张泌亦在《妆楼记》中记我：“斜红烧脸，盍古妆也。”我是一道月牙形的胭脂痕，或如刀伤，或似花纹，以残破之姿，成时髦之风。" },
+                { name: "梅花妆", file: "妆容_梅花妆.png", info: "我是“梅花妆”，我的真身，是以胭脂在额上画成梅花状，或用梅花形薄片贴于额间，因而也称寿阳妆、花钿。我的诞生，源自一段偶然的风流韵事。《太平御览》中记下了我的传奇：南朝宋武帝刘裕之女寿阳公主，于正月初七（人日）卧于含章殿檐下，恰有梅花飘落，正落额间，成五瓣花形，拂之不去。皇后留之观赏，三日之后方才洗落，而额间已染就花瓣之状，美艳动人。宫中女子见而奇之，竞相效仿，剪梅花贴于额，于是便有了我.从此我从宫廷流传至民间，成为风靡数百年之久的时尚。" },
+                { name: "碎妆", file: "妆容_碎妆.png", info: "我是“碎妆”，我的真身，是将面靥贴满整个面颊的妆容，各式花样铺满脸庞，给人以支离破碎之感。我的模样，花样繁多，六朝时期，面靥已从单一的圆点状发展出各种形制与质地：有似金黄色小花的“星靥”，北周庾信《镜赋》中“靥上星稀，黄中月落”便是我的一种姿态；也有以金箔片制成的小型花样，贴于颊上，熠熠生辉。此时的我，不再局限于酒窝两点，而是贴满整个面颊，星星点点，如落花满径，似碎金散面。" },
+                { name: "紫妆", file: "妆容_紫妆.png", info: "我是“紫妆”，我的真身是用紫色香粉敷面的妆容，相传由魏文帝宫人段巧笑所创，从此从洛阳流行到长安。晋代崔豹《古今注》里记下了我的传奇：“巧笑始以锦衣丝履，作紫粉拂面。”当别的女子还在追求红妆妩媚时，她已用紫粉轻轻拂过脸颊，让面庞泛起浅紫光晕，异样的视觉效果立刻俘获了帝王之心。我的诞生离不开巧思与匠心，北魏贾思勰在《齐民要术》里详细记下了我的秘方：“作紫粉法，用白米英粉三分，胡粉一分，和合均调。取落葵子熟蒸，生布绞汁和粉，日曝令干。”若颜色浅了，便再蒸取汁，层层浸染，直至染出恰到好处的浅紫。至唐代，人们又在我的配方里掺入银朱粉，调出更丰富的紫红色调，明代宋应星《天工开物》中“紫粉，纸红色，贵重者用胡粉、银朱对和”的记载，便是我流传千年的见证。紫色自古便是高贵之色，隋唐以后，唯有高官才配穿紫袍，“满朝朱紫贵”说的便是这份尊崇。而我，早在六朝时就已化作女子颊上的风流。若以今人的眼光来看，黄皮肤的女子用我打底，恰能中和肤色、映出白皙；而在千年前，我更是以一抹浅紫，为那个时代的审美添上了异样的光彩。" },
+                { name: "红妆", file: "妆容_红妆.png", info: "我是“红妆”，我的使命就是用胭脂把脸颊染得红艳动人，因而也称“红粉妆”，从秦汉萌芽到六朝盛行。梁武陵王在《明君词》里感叹我“谁堪览明镜，持许照红妆”，谢朓笔下“好颜色”的、梁简文帝诗中“胭脂逐脸生”的，都是我娇媚的身影。我的诞生还得益于胭脂工艺的突飞猛进：彼时有了两种随身携带的宝贝：一种叫绵胭脂，用丝绵卷成圆棒浸透红蓝花汁，敷脸画唇两相宜；一种叫金花胭脂，将金箔或纸片浸染花汁制成薄片，用时蘸一点唾液便能化开，轻点面颊或嘴唇，妆容即刻鲜活。胭脂多在腮部晕染，额头、鼻梁与下颌则露出白粉底色，或先粉后胭脂，或先胭脂后粉，手法虽异，却都是双颊绯红、肤白胜雪的娇态。因了我的魔力，缺陷也能生出美来，这便是彼时女子颊上的“面靥妆”。" },
+                { name: "额黄妆", file: "妆容_额黄妆.png", info: "我是“额黄妆”，我的真身，是以黄色颜料染黄额头，或名鹅黄、约黄、贴黄；若剪金箔花片贴于额上，便唤作花黄。我的流行，与彼时佛教的东传息息相关，当全国大兴寺院、塑佛身开石窟蔚然成风，女子们或许是从涂金的佛像上得了灵感，将额头染成黄色，久而成习。我的模样，有两种风姿。一为染画：以黄色颜料轻染额角，如北周庾信《舞媚娘》诗中所写“眉心浓黛直点，额角轻黄细安”；一为剪贴：用黄色硬纸或金箔剪成星、月、花、鸟之形，以胶水贴于额上，这便是南朝陈叔宝《采莲曲》里“薄落点花黄”的风流。我的身影，在南北朝诗文中处处可见，萧纲《戏赠丽人》里的“异作额间黄”，江洪《咏歌姬》中的“薄鬓约微黄”，都是我的写照。我是一抹额间的浅黄，借佛前金光，成女儿风流。" }
+            ],
+            clothes: (function() {
+                const infoDb = {
+                    襦: `我是“襦”，《说文》里是这么解释我的：“襦，短衣也。”因为我无法完全遮蔽身体，下身必须搭配裙或裤等，所以常合称襦裙、襦裤等。襦裙是六朝最普遍的女性常服，可以说是一种“永不过时”的经典搭配。`,
+                    长裙: `我是“长裙”，看名字你肯定觉得稀松平常，而六朝时期的我“曳地、宽大”的风格却格外突出，长度和宽度都有所增加，甚至有的长袍裙裾能曳地四五尺，当时“尚纤丽、重轻柔”的服饰审美在我身上充分地体现了出来。`,
+                    广袖: `我是“广袖”，顾名思义，是指宽大的衣袖。南朝时由于士族地主的提倡，大袖长裾式的服装曾盛极一时，当时的士族男女可是普遍将我视为时髦的象征。`,
+                    抱腰: `我是“抱腰”，也叫“围裳”或“腰采”，顾名思义，我是一类围在腰部的服饰，多以细布制成，外系丝带以固定。魏晋时的女性偏好纤细腰肢，我在这一风尚中可起到了很大的作用。`,
+                    帔子: `我是“帔子”，就是披在肩背上的长巾，我可比常见的“披帛”颜色更加艳丽，还常常绣有各种纹饰，在晋朝的贵族中间可时新了。`,
+                    髾: `我是“髾”，我们现代的亲戚是飘带。我就是从围裳中伸出来的飘带，因为形状特别像旗子，所以被称为“髾”。`
+                };
+
+                return [
+                    {
+                        name: "襦裙",
+                        file: "衣服_襦裙.png",
+                        info: `${infoDb.襦}\n\n${infoDb.长裙}`
+                    },
+                    {
+                        name: "襦裙（广袖）",
+                        file: "衣服_襦裙（广袖）.png",
+                        info: `${infoDb.襦}\n\n${infoDb.长裙}\n\n${infoDb.广袖}`
+                    },
+                    {
+                        name: "襦裙（广袖 + 抱腰）",
+                        file: "衣服_襦裙（广袖 + 抱腰 ）.png",
+                        info: `${infoDb.襦}\n\n${infoDb.长裙}\n\n${infoDb.广袖}\n\n${infoDb.抱腰}`
+                    },
+                    {
+                        name: "襦裙（广袖 + 帔子）",
+                        file: "衣服_襦裙（广袖+帔子）.png",
+                        info: `${infoDb.襦}\n\n${infoDb.长裙}\n\n${infoDb.广袖}\n\n${infoDb.帔子}`
+                    },
+                    {
+                        name: "襦裙（髾 + 广袖）",
+                        file: "衣服_襦裙（髾 + 广袖）.png",
+                        info: `${infoDb.襦}\n\n${infoDb.长裙}\n\n${infoDb.髾}\n\n${infoDb.广袖}`
+                    },
+                    {
+                        name: "袿衣（髾+抱腰+广袖）",
+                        file: "衣服_袿衣（髾+抱腰+广袖）.png",
+                        info: "我是“袿衣”，还有一个更为复杂的名字——“杂裾垂髾”，就是在女子的深衣下部加襳[xiān]和髾[shāo]，所谓的“襳”是指在腰部下垂为饰的纤纤长带；“髾”则是衣服下摆相连接的三角形饰物，并层层叠叠。我通常以丝织物制成，女子穿戴上我走路，会显得十分灵动飘逸。到南北朝时，我又“更新迭代”了，去掉了曳地的飘带，而将尖角的“燕尾”加长，使两者合为一体。要是想瞧一瞧我的模样，细心的你可以去《女史箴图》或司马金龙墓出土的《列女古贤图》等图中找找哟！"
+                    }
+                ];
+            })(),
+            shoes: [
+                { name: "丝履", file: "鞋子_丝履.png", info: "我是“丝履”，我的真身是用丝帛制成的鞋子，轻柔贴足，素雅中透着精致。我的身影最早见于《玉台新咏》收录的《古诗为焦仲卿妻作》，诗中那位坚贞的刘兰芝“足下蹑丝履，头上玳瑁光”，丝履与玳瑁簪相映生辉，成为她端庄仪态的点睛之笔。那一双丝履，伴她走过悲欢离合，也承载了千年前女子的温婉与风骨。" },
+                { name: "笏头履", file: "鞋子_笏头履.png", info: "我是“笏头履”，我的真身是一种履头高翘、形如朝笏的鞋履，流行于南北朝时期。我的模样颇为独特：履首向上翻卷，高耸如墙，既显端庄，又添袅娜之姿。南朝诗人曾用笔墨为我留影，简文帝在诗中写道“画屧重高墙”，那一双双彩绘的木底屐，履头高翘如墙，层层叠叠，步步生韵。王训亦有“试履逆填墙”之句，描绘女子试穿新履时，履尖不经意触碰到墙边的瞬间，那份小心翼翼的新奇与喜悦，跃然纸上。女子身着宽博襦裙，足下露出我那高翘如笏的履首，一步一停间，皆是那个时代追求新巧、崇尚风韵的生动注脚。" },
+                { name: "绣花鞋", file: "鞋子_绣花鞋.png", info: "我是“绣花鞋”，我的身影最早翩跹于文人墨客的辞章里：曹植《洛神赋》中写洛神宓妃“践远游之文履”，穿的便是我这远游花鞋，那时我已随洛神的凌波微步名动天下。到了梁朝，沈约在《少年新婚为之咏》里描摹一位新婚的乡下少女，“锦履并花纹，绣带同心首”，她足下这双绣花锦鞋，履面织锦、花纹绚丽，鞋头还缀着同心结。千百年来，我以“锦履”“文履”“绣履”等名号陪伴无数女子走过人生四季，从宫廷贵妇到乡间少女，都爱在我的方寸之间寄托情思，或许是洛神的飘逸出尘，或许是新娘的同心之愿，都化作鞋尖的牡丹、鞋帮的彩蝶。" },
+                { name: "舄", file: "鞋子_舄.png", info: "我是“舄”，我的真身是双层底的礼履。汉代刘熙在《释名》中为我正名：“履，礼也，饰足所以为礼也。亦曰屦。屦，拘也，所以拘足也。复其下曰舄。舄，腊也，行礼久立，地或泥湿，故复其下，使干腊也。”单层为屦，在屦底再加一层便成了我，这加厚的鞋底，是为了在行礼久立时隔绝地面的泥湿，让我成为与庄严礼服最相配的足衣。我的颜色也暗含着森严的等级，据《释名》记载，舄有赤、黑诸色，需与礼服相配，不同颜色代表不同身份。其中赤舄最为尊贵，非身居高位者不得服之。你若想一睹我的风采，不妨去想象那些古代隆重的祭祀与朝会，着冕服的天子公卿，足下或有我一抹赤色，承载着千年的礼仪。" },
+                { name: "锦绣靴", file: "鞋子_锦绣靴.png", info: "我是“锦绣靴”，我的身世要从“靴”本身说起。汉代刘熙《释名》曰：“靴，跨也，两足各以一跨骑也。本胡服，赵武灵王服之。”我本是北方游牧民族的装束，因赵武灵王推行胡服骑射而传入中原。唐代马缟《中华古今注》也印证：“靴者，盖古西胡也。昔赵武灵王好胡服，常服之，其制短靿黄皮，闲居之服。”而我“锦绣靴”的名号，则是身份与地位的象征。据《太平御览》引《邺中记》载：“石虎皇后出，女骑千人，皆着五彩织成靴”，那千骑簇拥的盛大场面，我以五彩斑斓的身姿装点着皇后的威仪。南梁简文帝在《西齐行马诗》中亦咏“日映织成靴”，日光洒落，我的锦绣纹样熠熠生辉。更有《太平御览》引《慕容晃与顾和书》“今致绣靴一量”，将我作为馈赠之礼，足见何等珍贵。《旧唐书·舆服志》记载：“爰至北齐，有长帽短靴，合袴袄子，朱紫玄黄，各任所好”，那是一个多元服饰并存的开放时代。北魏晚期，南朝陈暄更是“袍拂踝，靴至膝”，将我与长袍相配，别具风姿。" }
+            ],
+            accessories: [
+                { name: "金花饰片", file: "饰品_头饰_金花饰片.png", info: "我是“金花饰片”，是千年前缀在女子头上的金饰，用极薄的金片、极细的金丝、微小的金珠焊接而成，我的周身镶嵌着珍珠、玛瑙、蓝宝石、绿松石、贝壳与玻璃。我是北齐工匠指尖的绝艺，是娄叡墓中沉睡千年的金片，或许千百年前，我缀在主人的高髻之上，随着她的步履，在光影里流转着七彩的辉芒。" },
+                { name: "兵器首饰", file: "饰品_头饰（发钗）_兵器首饰.png", info: "我是“五兵佩”，我的真身是用金银制成的斧、钺、戈、戟，本是战场杀伐的利器，却被西晋女子化作钗头的点缀、腰间的佩饰。我的故事，记载在《晋书·五行志》里：“惠帝元康中，妇人之饰有五兵佩，又以金银玦鏐之属为斧、钺、戈、戟，以当笄、钗。”那正是公元291年至299年，八王之乱战火正酣，此后兵戈不息，民生涂炭。乱世中的女子，将斧钺戈戟挂在发间、佩于腰间，这些本非祥和的杀伐之器，却被她们赋予了辟邪的祈愿，化作对和平的渴求、对战乱的无声抗议。我的诞生，是乱世里一缕无奈的智慧，也是女子心底最深切的愿望，愿这世间再无兵戈，愿这满目的兵器，只作妆点，不作杀伐。" },
+                { name: "金爵钗", file: "饰品_头饰（发钗）_金爵（雀）钗.png", info: "我是“金爵钗”，我的真身是上端制成雀形的金钗，因而也得名“金雀钗”。三国魏曹植在《美女篇》里写我“头上金爵钗，腰佩翠琅玕”，西晋陆机《日出东南隅行》中“金雀垂藻翘，琼佩结瑶璠”一句，说的正是我头上垂着有花纹的羽毛，佩戴的琼珮连结着美玉。考古学家们也找到了我的实物——在江苏苏州虎丘路三国孙吴M2墓葬中，出土了凤首金钗，簪首为二鸟相对，用金片、炸珠等工艺饰 out 羽毛、翅膀；南京后头山东晋墓中，也发现了“对鸟”形金饰，正是当时的头部饰物。这成对的鸟儿，不仅是发间的点缀，更是爱情的象征，也传承着商周时代笄簪的古老形制。" },
+                { name: "耳饰", file: "饰品_耳饰_耳饰.png", info: "我是“明月珰”，“明月”是珍珠的名号，“珰”便是耳饰。当我以圆润的珍珠悬于女子耳际，便如两轮明月在鬓边轻轻摇曳。那首无人不知的《古诗为焦仲卿妻作》中，刘兰芝“腰若流纨素，耳著明月珰”，腰间束着如流光般的白绸，耳边垂着我这用明月珠装饰的耳珰。魏晋的女子们，挽着高大的发髻，戴着繁复的簪钗，再配上我这一对明月珰，便完成了妆奁最后的点染，华贵而不张扬，温润中自有光芒。" },
+                { name: "臂饰", file: "饰品_首饰_臂饰1.png", info: "我是“绾臂双金环”，是绕在臂间的一对金环。曹魏繁钦的《定情诗》描绘了一位热恋中的年轻女子，焦急地等待与恋人相会时的穿戴，诗中写道：“我既媚君姿，君亦悦我颜。何以致拳拳？绾臂双金环。”——拿什么来表达我对你的诚挚爱意？便是我这一对绕在臂上的金环。那位美丽少女，双耳坠着明珠，手指上戴一双银戒指，手腕上戴一对镯子，臂上戴着我这对金环，肘后系着香囊，腰间佩戴的美玉上垂着丝穗。诗中虽难免有夸张之处，但从中大致可以看出那个时代妇女佩饰的特点：环佩叮当，步步生情。" },
+                { name: "镯", file: "饰品_首饰_镯.png", info: "我是“镯”，我的名字可多了：有人叫我“钏”，有人唤我“跳脱”，六朝时还称我“钗臂”。我的真身是绕在腕上的一圈金玉，从汉末三国到六朝，一直是女子们最贴心的臂饰。我的故事，藏在一个个诗文里。东汉繁钦《定情诗》里问：“何以致契阔？绕腕双跳脱。”——拿什么表达我们生死不渝的深情？就是我这对绕腕的跳脱。南朝《真诰》里，仙女萼绿华降凡，赠给羊权的礼物中就有“金玉跳脱各一枚”；安妃也有“斲粟金跳脱”。考古学家们也屡屡寻见我的身影，京仙鹤观东晋墓里，一次出土4件镯，有的光素无纹，有的外缘饰满密集的齿轮纹；南京后头山东晋墓中，我是一件鎏金银镯，虽历千年仍泛着温润的光泽。" },
+                { name: "披子", file: "披子.png", info: "我是“披子”，就是披在肩背上的长巾，我可比常见的“披帛”颜色更加艳丽，还常常绣有各种纹饰，在晋朝的贵族中间可时新了，萧纲《倡妇怨情诗》里还提到了我——“散诞披红帔，生情新约黄。”但是，如果只把我当作装饰品可就小看我啦，当时的女装面料大量采用了轻软细薄的罗沙等精细丝织品，但女装过于轻薄无法御寒，于是，聪明的妇女便发明了既好看又保暖的我。" },
+                { name: "绅带", file: "绅带.png", info: "我是“绅带”，又称大带，是系在衣外的腰带，常用丝织物做成，某种意义上说我也是一种尊贵身份的象征，不信你瞧，江淹的《扇上彩画赋》提到了我：“命幸得为彩扇兮，出入玉带与绮绅。”多气派呀！当时可是有地位官职的人才有资格系带。而在鲍照笔下，“结带与我言，死生好恶不相置”，我又有了结带盟誓以显深情的深意。不仅如此，你想象一下，腰间绅带飘垂，是不是别有一番韵味呀。" }
+            ],
+            furniture: [
+                { name: "妆奁", file: "生活用品/妆奁.jpg", info: "我是“镜奁”，我的真身，是古代女子梳妆用的镜匣与妆奁。我生于闺阁，伴于晨昏，既藏脂粉香泽，亦映花容月貌。我的形制，在六朝时已然精巧，庾信《镜赋》中写我：“暂设妆奁，还抽镜屉。”那镶有镜子的隔层之下，收纳着“朱开锦蹹，黛蘸油檀”，踏行之处皆锦绣铺陈，青黛、胭脂、甲煎香膏、兰泽发油，种种妆品，罗列其中。恰如《孔雀东南飞》所言：“箱帘六七十，绿碧青丝绳。物物各自异，种种在其中。”我既是器具，也是那个时代女子心爱之物的珍藏之所。我见证过欢愉，也承载过寂寥，徐干《情诗》中“炉薰阖不用，镜匣上尘生”，那镜匣上的尘土，是思妇为远行良人罢妆的无声叹息。庾信《荡子赋》里“奁前明镜不须明”，亦是同样的哀怨。刘缓《秋夜》中“香燃奁欲空”，香尽奁空，伴以烛泪双垂，映出妆上红痕。萧子显《陌上桑》里“开奁妆不成”，是心绪烦乱，纵然打开镜奁，也无心梳妆。萧子云《春思》中“余花落镜奁”，则以镜奁之上飘落的花瓣，喻指女子自身的青春流逝与孤寂命运。我甚至还有一份意想不到的趣味，《世说新语》载，魏时宫内曾以我作“弹棋”之戏，宫女们将金钗、玉梳置于我的面上，以此作为游戏的器具。魏文帝曹丕于此技尤妙，能以手巾角拂棋，百发百中。从盛放脂粉的器用，到寄托情感的物象，再到游戏的道具，我以一方之匣，收纳了六朝女子的生活点滴、爱怨悲欢。开合之间，既是容颜的修饰，亦是心事的展藏。" },
+                { name: "梳子", file: "生活用品/梳子.jpg", info: "我是梳子，是妆奁中不可或缺的梳具，伴六朝女子走过日常梳妆与人生重要时刻。我藏于妆奁屉中，自有乾坤，徐干《室思》中“思君见巾栉，以益我劳勤”，那手巾与篦子，是日日相伴的寻常之物，亦因思念而牵动劳勤。萧纲《戏赠丽人》中“同安鬟里拨，异作额间黄”，萧纶《见姬人》中“比来妆点异，今世拨鬟斜”，那名为“拨”的鬓枣，形似枣核，用以理鬓，是我最精巧的模样。我也承载着人生仪节的庄重，萧祗《和定襄侯八绝初笄一首》中“合鬟仍昔发，略鬓即前丝。从今一梳罢，无复更萦时”，写的是女子十五岁束发加笄的成年之礼。拢鬟掠鬓，一梳之后，青丝成髻，标志着从少女走向成年。我更见证过无尽的寂寥与等待，朱超道《赋得荡子行未归》中“捉梳羞理鬓，挑朱懒向唇”，那捉起梳子又羞于理鬓、挑起口红又懒于点唇的无措，与《诗经》“自伯之东，首如飞蓬”的哀怨一脉承。荡子不归，纵然打开妆奁，又有何人心思妆扮？从幼女弄妆的稚趣，到初笄加笄的郑重；从晨起理鬓的日常，到思妇罢妆的寂寥。我以梳齿之细，梳尽女子岁岁年年的光景，梳篦簪钗相伴，件件都是生活的印记。" },
+                { name: "床（帷幔）", file: "生活用品/床（帷幔）.jpg", info: "我是“帐”，我的真身，是古人床榻之上、居室之中的帷帐。我以丝罗为面，以金莲为饰，悬于斗室，隔开内外，既护人安眠，也见证离合悲欢。我生来华美，庾信《镜赋》中“玉花簟上，金莲帐里”，那玉花点缀的竹席之上，是顶安金莲的豪华帷帐，仿若十六国石虎宫中的流苏帐，华贵非凡。《孔雀东南飞》里焦仲卿与刘氏成婚时，用的是“红罗复斗帐，四角垂香囊”，双层红罗制成的小帐，形如覆斗，四角悬着装有香料的香囊，满是新婚的喜气。然而我也伴过孤寂，谢朓《铜雀台妓》中“繐帏飘井干，樽酒若平生”，那灵堂上飘动的繐帐，用稀疏麻布制成，伴着生前所用樽酒，仿佛人犹在、事如昨。同样的哀戚，在沈约《悼往》中更深一层：“屏筵空有设，帷席更施张。游尘掩虚座，孤帐覆空床。”灵堂的屏风竹席空自陈设，帷帐床席依旧铺张，可人已不在，游尘掩了虚座，孤帐覆了空床，那“孤帐”，便是痛失所爱后最刺目的存在。我更是闺中思妇的伴侣，萧子云《春思》中“春风荡罗帐，余花落镜奁”，春风吹动罗帐，也吹落花瓣飘入镜奁，帐动花落之间，是女子对青春流逝的轻叹。《明月何皎皎》中“明月何皎皎，照我罗床帏。忧愁不能寐，揽衣起徘徊”，那月光照在我的罗帐之上，映出思妇辗转难眠的身影。何逊《闺怨》中“含情下翠帐，掩涕闭金屏”，翠帐放下，金屏掩闭，泪眼之中，是远人未归的无尽等待。我以一方帷帐，隔出一个个私密空间，也收藏着人间最深的悲欢。帐内是梦，帐外是世事；开合之间，一生已过。" },
+                { name: "围屏", file: "生活用品/围屏.jpg", info: "我是“屏风”，我的真身，是古人居室之中、床榻之前的遮蔽之物。我以木为骨，以绢为面，可折可合，可画可绣，立于户扇之间，隔开内外，也见证着人间百态。我的结构，自有精妙之处，庾信《镜赋》中“始折屏风，新开户扇”，打开户扇之前，先要将我折叠收拢。而《灯赋》中“舒屈膝之屏风，掩芙蓉之行障”，那名为“屈膝”的环纽搭扣，便是将我各扇相连的关键，正如《邺中记》所载石虎作金银钮屈戌屏风，衣以白缣，画义士仙人禽兽之像，华美而精巧。我的材质也多样，刘义庆《世说新语》载满奋畏风，见晋武帝坐北窗作琉璃屏，以为透风而面露难色——那琉璃屏风，实则“实密似疏”，有色半透明，既挡风又不阻光，是当时宫中奇巧之物。我也曾是王权的象征，张衡《东京赋》中“负斧扆，次席纷纯”，那帝王身后绣有斧形图案的“斧扆”，便是我的一种形态。天子背我南面而坐，竹席为边，玉几在侧，以我听天下，那一刻，我便化身成为礼制的象征。我更常见于闺阁之中，见证着女子的悲欢，何逊《闺怨》中“含情下翠帐，掩涕闭金屏”，那有金饰的屏风，在泪眼之中被掩闭，隔开的是室外的春光，也是心底的期盼。萧纲《乌栖曲》中“织成屏风金屈膝，朱唇玉面灯前出”，那金饰屈膝的屏风前，灯下佳人朱唇玉面，相看之际，是欲前还羞的缠绵。《咏秋夜》中“灯光入绮帷，帘影进屏风”，光影透过帷帐落在我的身上，伴着琴声与《离鸿》之曲，是秋夜的孤清。《晓思》中“屏风隐镜台”，我半遮着镜奁，与炉烟斗帐相映，而女子“红妆随泪尽”，等待着不知何时归来的荡子。《秋闺夜思》中“宵床悲画屏”，那床前雕绘的画屏，本常有男女欢会之景，此刻却反衬出独守空闺的悲愁；夕门掩钥，月光临窗，秋虫绕砌，故妆未卸，新衣未成，这一切，我都静静看着。我以一扇之屏，立于室中，折开时，生活便开始了；合拢时，心事便展开了。" },
+                { name: "屏风", file: "生活用品/屏风.jpg", info: "我是“屏风”，我的真身，是古人居室之中、床榻之前的遮蔽之物。我以木为骨，以绢为面，可折可合，可画可绣，立于户扇之间，隔开内外，也见证着人间百态。我的结构，自有精妙之处，庾信《镜赋》中“始折屏风，新开户扇”，打开户扇之前，先要将我折叠收拢。而《灯赋》中“舒屈膝之屏风，掩芙蓉之行障”，那名为“屈膝”的环纽搭扣，便是将我各扇相连的关键，正如《邺中记》所载石虎作金银钮屈戌屏风，衣以白缣，画义士仙人禽兽之像，华美而精巧。我的材质也多样，刘义庆《世说新语》载满奋畏风，见晋武帝坐北窗作琉璃屏，以为透风而面露难色——那琉璃屏风，实则“实密似疏”，有色半透明，既挡风又不阻光，是当时宫中奇巧之物。我也曾是王权的象征，张衡《东京赋》中“负斧扆，次席纷纯”，那帝王身后绣有斧形图案的“斧扆”，便是我的一种形态。天子背我南面而坐，竹席为边，玉几在侧，以我听天下，那一刻，我便化身成为礼制的象征。我更常见于闺阁之中，见证着女子的悲欢，何逊《闺怨》中“含情下翠帐，掩涕闭金屏”，那有金饰的屏风，在泪眼之中被掩闭，隔开的是室外的春光，也是心底的期盼。萧纲《乌栖曲》中“织成屏风金屈膝，朱唇玉面灯前出”，那金饰屈膝的屏风前，灯下佳人朱唇玉面，相看之际，是欲前还羞的缠绵。《咏秋夜》中“灯光入绮帷，帘影进屏风”，光影透过帷帐落在我的身上，伴着琴声与《离鸿》之曲，是秋夜的孤清。《晓思》中“屏风隐镜台”，我半遮着镜奁，与炉烟斗帐相映，而女子“红妆随泪尽”，等待着不知何时归来的荡子。《秋闺夜思》中“宵床悲画屏”，那床前雕绘的画屏，本常有男女欢会之景，此刻却反衬出独守空闺的悲愁；夕门掩钥，月光临窗，秋虫绕砌，故妆未卸，新衣未成，这一切，我都静静看着。我以一扇之屏，立于室中，折开时，生活便开始了；合拢时，心事便展开了。" },
+                { name: "镜台", file: "生活用品/镜台.jpg", info: "我是“镜台”，我的真身，是古人闺阁之中承托明镜、收纳妆奁的梳妆之具。我的形制，精美绝伦，谢朓《咏镜台》中写我：“玲珑类丹槛，苕亭似玄阙。对凤县清冰，垂龙挂明月。”那雕镂空明的纹饰，宛如赤色栏杆；那高耸挺立的姿态，仿佛传说中的玄阙。庾赋又载：“镜台银带，本出魏宫。能横却月，巧挂回风。”曹操《上杂物疏》中所言纯银参带镜台、纯银七子镜台，皆出魏宫，足见我之贵重。更有“镂五色之盘龙，刻千年之古字”，那雕镂的蟠龙、镌刻处有古字，皆是我身上的华彩。萧纲《咏镜》中“全开玳瑁匣，并卷织成衣”，玳瑁为匣，织成为衣，更是我奢华之态。我的台上，自有梳妆的光景，何逊《咏照镜》中写女子晨起对镜：“珠帘旦初捲，绮罗朝未织。玉匣开鉴形，宝台临净饰。”珍珠帘卷，织机未动，先打开玉匣，取出明镜，临着我这珠宝镶嵌的镜台，细细妆饰。“对影独含笑，看花空转侧”，那对镜自赏的微微一笑，那侧身顾盼的看花姿态，是何等生动。接着“聊为出茧眉，试染桃夭色”，画那如蚕蛾触须般的眉，试那如桃花初放般的红妆；再插上羽钗，戴上金钿，这一番描摹，将晨妆之景次第写来。我甚至被赋予了更深的文化意蕴，庾信《镜赋》中“镜乃照胆照心，难逢难值”，用《西京杂记》中方镜照人肠胃五脏、女子邪心则胆张心动的典故，使我有了辨察人心的神秘色彩。而《世说新语》载温峤以玉镜台为聘，自娶姑母之女，那一枚“为刘越石长史北征刘聪所得”的玉镜台，从此成为千古佳话。我以一台之镜，映照着六朝女子的容颜与心事，庾信《咏镜》云：“光如一片水，影照两边人。”那如水的光华中，照见的，是千年的悲欢。" }
+            ]
+        };
+
+        let currentMode = 'outfit'; // 'bg' or 'outfit'
+        let currentCategory = 'hair';
+
+        const panelTitle = document.getElementById('panel-title');
+        const categoryNav = document.getElementById('category-nav');
+        const itemList = document.getElementById('item-list');
+        const furnitureGrid = document.getElementById('furniture-grid');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalClose = document.getElementById('modal-close');
+        const modalImg = document.getElementById('modal-img');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+
+        // 按钮点击事件
+        document.getElementById('btn-bg').onclick = function() {
+            currentMode = 'bg';
+            this.classList.add('active');
+            document.getElementById('btn-outfit').classList.remove('active');
+            panelTitle.innerText = "切换背景";
+            categoryNav.style.display = "none";
+            renderItems('background');
+        };
+
+        document.getElementById('btn-outfit').onclick = function() {
+            currentMode = 'outfit';
+            this.classList.add('active');
+            document.getElementById('btn-bg').classList.remove('active');
+            panelTitle.innerText = "锦绣换装";
+            categoryNav.style.display = "flex";
+            renderItems(currentCategory);
+        };
+
+        // 二级分类点击事件
+        categoryNav.addEventListener('click', (e) => {
+            if (e.target.classList.contains('nav-item')) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategory = e.target.dataset.cat;
+                renderItems(currentCategory);
+            }
+        });
+
+        // 渲染换装物品列表
+        function renderItems(cat) {
+            itemList.innerHTML = '';
+            data[cat].forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                const imgPath = item.file.includes('/') ? item.file : `换装衣服/${item.file}`;
+                card.innerHTML = `
+                    <img src="${imgPath}">
+                    <span>${item.name}</span>
+                `;
+                card.onclick = () => {
+                    applyItem(cat, item.file);
+                    showInfo(item.name, item.info);
+                };
+                itemList.appendChild(card);
+            });
+        }
+
+        // 渲染生活用品区域
+        function renderFurniture() {
+            furnitureGrid.innerHTML = '';
+            data.furniture.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'furniture-card';
+                const imgPath = item.file.includes('/') ? item.file : `换装衣服/${item.file}`;
+                card.innerHTML = `
+                    <img src="${imgPath}">
+                    <h3>${item.name}</h3>
+                `;
+                card.onclick = () => {
+                    openModal(item.name, imgPath, item.info);
+                };
+                furnitureGrid.appendChild(card);
+            });
+        }
+
+        // 弹窗逻辑
+        function openModal(name, img, info) {
+            modalTitle.innerText = name;
+            modalImg.src = img;
+            modalText.innerText = info || "暂无该项的科普文案...";
+            modalOverlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // 禁止背景滚动
+        }
+
+        modalClose.onclick = () => {
+            modalOverlay.style.display = 'none';
+            document.body.style.overflow = 'auto'; // 恢复滚动
+        };
+
+        modalOverlay.onclick = (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        };
+
+        // 显示科普文案 (右侧面板)
+        function showInfo(name, info) {
+            const infoTitle = document.getElementById('info-title');
+            const infoContent = document.getElementById('info-content');
+            
+            if (info) {
+                infoTitle.innerText = name;
+                infoContent.innerText = info;
+            } else {
+                infoTitle.innerText = "文物有话说";
+                infoContent.innerText = "选择想更换的背景吧";
+            }
+        }
+
+        // 应用物品到画布
+        function applyItem(cat, file) {
+            let layerId;
+            let targetImg;
+            const fullPath = file.includes('/') ? file : `换装衣服/${file}`;
+
+            if (cat === 'background') {
+                document.getElementById('layer-background').src = fullPath;
+                return;
+            }
+
+            if (cat === 'furniture') {
+                layerId = 'layer-furniture';
+                targetImg = document.getElementById(layerId);
+            }
+            // 鞋子层级逻辑 (统一在人物上)
+            else if (cat === 'shoes') {
+                layerId = 'layer-shoes';
+                targetImg = document.getElementById(layerId);
+            } 
+            // 饰品细分层级逻辑 (发钗、头饰、耳饰、腰饰等可叠加)
+            else if (cat === 'accessories') {
+                if (file.includes('发钗')) {
+                    layerId = 'layer-acc-hairpin';
+                } else if (file.includes('头饰')) {
+                    layerId = 'layer-acc-head';
+                } else if (file.includes('耳饰')) {
+                    layerId = 'layer-acc-ear';
+                } else if (file.includes('披子')) {
+                    layerId = 'layer-acc-pizi';
+                } else if (file.includes('绅带')) {
+                    layerId = 'layer-acc-shendai';
+                } else {
+                    layerId = 'layer-acc-jewelry';
+                }
+                targetImg = document.getElementById(layerId);
+            } 
+            // 默认分类 (衣服、头发、妆容)
+            else {
+                layerId = `layer-${cat}`;
+                targetImg = document.getElementById(layerId);
+            }
+
+            // 如果已经显示了同一个文件，则隐藏它（取消选择）
+            const currentSrc = targetImg.getAttribute('src');
+            const newSrc = fullPath;
+
+            if (targetImg.style.display !== 'none' && currentSrc === newSrc) {
+                targetImg.style.display = 'none';
+                targetImg.src = ''; // 清除路径
+            } else {
+                targetImg.src = newSrc;
+                targetImg.style.display = 'block';
+            }
+        }
+
+        // 初始化
+        renderItems('hair');
+        renderFurniture();
+    </script>
+</body>
+</html>

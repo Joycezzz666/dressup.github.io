@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寻踪六朝 - 门户</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: "SimSun", "STSong", "Songti SC", serif;
+            background-color: #f4ecd8; /* 宣纸色 */
+            background-image: url('换装衣服/初始背景.jpg'); /* 使用初始背景作为大背景 */
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+        }
+
+        /* 遮罩层增加古风朦胧感 */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(244, 236, 216, 0.4);
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 64px;
+            color: #5d4037;
+            letter-spacing: 12px;
+            margin-bottom: 60px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 50px;
+        }
+
+        .portal-btn {
+            background-color: rgba(253, 245, 230, 0.9);
+            border: 3px solid #8b4513;
+            border-radius: 12px;
+            padding: 25px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #5d4037;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            display: block;
+        }
+
+        .portal-btn:hover {
+            background-color: #8b4513;
+            color: #fff;
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        .portal-btn span {
+            display: block;
+            font-size: 14px;
+            font-weight: normal;
+            margin-top: 8px;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="content">
+        <h1>寻踪六朝</h1>
+        <div class="btn-container">
+            <a href="dress-up.html" class="portal-btn">
+                锦绣霓裳
+                <span>衣冠换装 · 穿越千年</span>
+            </a>
+            <a href="map.html" class="portal-btn">
+                文物志图
+                <span>寻踪六朝 · 博物之旅</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
