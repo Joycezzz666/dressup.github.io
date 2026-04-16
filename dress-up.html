@@ -412,23 +412,25 @@
                 <button class="control-btn" id="btn-bg">切换背景</button>
                 <button class="control-btn active" id="btn-outfit">锦绣换装</button>
             </div>
-
             <div class="canvas-container">
                 <img id="layer-background" class="layer" src="换装衣服/初始背景.jpg">
                 <img id="layer-furniture" class="layer" style="display:none;">
                 <img id="layer-base" class="layer" src="换装衣服/初始形象.png">
+    <!-- 饰品全部放在衣服前面 -->
                 <img id="layer-shoes" class="layer" style="display:none;">
+                <img id="layer-acc-jewelry" class="layer" style="display:none;"> <!-- 镯 -->
+                <img id="layer-acc-bishi" class="layer" style="display:none;">   <!-- ✅ 臂饰 放这里 -->
+                <img id="layer-acc-zhihuan" class="layer" style="display:none;"> <!-- ✅ 指环 放这里 -->
+    <!-- ✅ 衣服放在所有底层饰品后面 -->
                 <img id="layer-clothes" class="layer" style="display:none;">
+    <!-- 上层装饰（头发、妆容、头饰等）放在衣服后面 -->
                 <img id="layer-makeup" class="layer" style="display:none;">
                 <img id="layer-acc-hairpin" class="layer" style="display:none;">
                 <img id="layer-hair" class="layer" style="display:none;">
                 <img id="layer-acc-head" class="layer" style="display:none;">
                 <img id="layer-acc-ear" class="layer" style="display:none;">
-                <img id="layer-acc-jewelry" class="layer" style="display:none;">
                 <img id="layer-acc-pizi" class="layer" style="display:none;">
-                <img id="layer-acc-shendai" class="layer" style="display:none;">
-                <img id="layer-acc-zhihuan" class="layer" style="display:none;">
-                <img id="layer-acc-bishi" class="layer" style="display:none;">
+                <img id="layer-acc-shendai" class="layer" style="display:none;">                
             </div>
         </div>
 
