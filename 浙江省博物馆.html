@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浙江省博物馆 - 六朝文物志</title>
+    <style>
+        body {
+            font-family: "SimSun", "STSong", "Songti SC", serif;
+            background-color: #f4ecd8; /* 宣纸色背景 */
+            color: #5d4037;
+            margin: 0;
+            padding: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 42px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            margin: 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #8b4513;
+            text-decoration: none;
+            border: 1px solid #8b4513;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .back-link:hover {
+            background-color: #8b4513;
+            color: #fff;
+        }
+        .category-section {
+            margin-bottom: 50px;
+        }
+        .category-title {
+            font-size: 28px;
+            border-bottom: 2px solid #8b4513;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            letter-spacing: 3px;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .item {
+            background-color: #fdf5e6;
+            border: 1px solid #dcd0b9;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .item img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            display: block;
+        }
+        .item-title {
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>浙江省博物馆</h1>
+        <a href="map.html" class="back-link">返回地图</a>
+    </div>
+
+    <div class="category-section">
+        <h2 class="category-title">发髻</h2>
+        <div class="gallery">
+            <div class="item">
+                <img src="发髻/高髻_浙江省博物馆.png" alt="高髻">
+                <div class="item-title">高髻</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="category-section">
+        <h2 class="category-title">生活用品</h2>
+        <div class="gallery">
+            <div class="item">
+                <img src="生活用品/南朝越窑青釉莲瓣纹唾壶（妆具配套）_浙江省博物馆.png" alt="南朝越窑青釉莲瓣纹唾壶（妆具配套）">
+                <div class="item-title">南朝越窑青釉莲瓣纹唾壶（妆具配套）</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="category-section">
+        <h2 class="category-title">饰品</h2>
+        <div class="gallery">
+            <div class="item">
+                <img src="饰品/南朝金辟邪(挂饰)_浙江省博物馆.png" alt="南朝金辟邪(挂饰)">
+                <div class="item-title">南朝金辟邪(挂饰)</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
