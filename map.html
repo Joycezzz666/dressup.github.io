@@ -162,7 +162,7 @@
     }).addTo(map);
 
     // 目标省份列表（博物馆所在地）
-    var targetProvinces = ["北京市", "陕西省", "江苏省", "辽宁省", "河南省", "山西省", "河北省", "甘肃省", "新疆维吾尔自治区"];
+    var targetProvinces = ["北京市", "陕西省", "江苏省", "辽宁省", "河南省", "山西省", "河北省", "甘肃省", "新疆维吾尔自治区", "浙江省", "湖北省", "安徽省", "江西省", "福建省"];
 
     // 藏青色古风样式 - 增强了边界感，使其看起来更像墨迹勾勒
     var highlightStyle = {
@@ -176,31 +176,38 @@
 
     // 获取中国省份 GeoJSON 数据
     fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('网络异常');
+            return response.json();
+        })
         .then(data => {
             L.geoJSON(data, {
                 filter: function(feature) {
-                    return targetProvinces.indexOf(feature.properties.name) !== -1;
-                },
-                style: highlightStyle
-            }).addTo(map);
-        });
-
-    // 尝试获取并高亮英国（大英博物馆所在地）
-    fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
-        .then(response => response.json())
-        .then(data => {
-            L.geoJSON(data, {
-                filter: function(feature) {
-                    // 匹配英国
-                    return feature.properties.ADMIN === "United Kingdom";
+                    return feature.properties && targetProvinces.indexOf(feature.properties.name) !== -1;
                 },
                 style: highlightStyle
             }).addTo(map);
         })
-        .catch(err => console.log("英国地理数据加载失败，仅显示点标记 ", err));
+        .catch(err => console.error("省份数据加载失败: ", err));
 
-    // 14个博物馆及其详细信息，手动调整坐标以防止重叠
+    // 尝试获取并高亮英国（大英博物馆所在地）
+    fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+        .then(response => {
+            if (!response.ok) throw new Error('网络异常');
+            return response.json();
+        })
+        .then(data => {
+            L.geoJSON(data, {
+                filter: function(feature) {
+                    // 匹配英国
+                    return feature.properties && feature.properties.ADMIN === "United Kingdom";
+                },
+                style: highlightStyle
+            }).addTo(map);
+        })
+        .catch(err => console.warn("英国地理数据加载失败（可能受限于网络），仅显示点标记: ", err));
+
+    // 博物馆及其详细信息，手动调整坐标以防止重叠
     var museums = [
         // 陕西
         { name: "西安博物馆", location: [34.24, 108.94], url: "西安博物馆.html" },
@@ -213,10 +220,28 @@
         // 江苏
         { name: "六朝博物馆", location: [32.04, 118.79], url: "六朝博物馆.html" },
         { name: "南京市博物馆", location: [31.20, 118.77], url: "南京市博物馆.html" }, // 向南偏移
+        { name: "镇江博物馆", location: [32.22, 119.42], url: "镇江博物馆.html" },
+        { name: "苏州博物馆", location: [31.32, 120.62], url: "苏州博物馆.html" },
+        { name: "常州博物馆", location: [31.81, 119.97], url: "常州博物馆.html" },
         
         // 河南
         { name: "洛阳古墓博物馆", location: [34.72, 112.41], url: "洛阳古墓博物馆.html" },
         { name: "汉魏洛阳古城遗址博物馆", location: [34.0, 112.45], url: "汉魏洛阳古城遗址博物馆.html" }, // 新增，并向南偏移
+
+        // 浙江
+        { name: "浙江省博物馆", location: [30.25, 120.14], url: "浙江省博物馆.html" },
+
+        // 湖北
+        { name: "湖北省博物馆", location: [30.56, 114.36], url: "湖北省博物馆.html" },
+
+        // 安徽
+        { name: "马鞍山市博物馆", location: [31.68, 118.51], url: "马鞍山市博物馆.html" },
+
+        // 江西
+        { name: "江西省博物馆", location: [28.69, 115.84], url: "江西省博物馆.html" },
+
+        // 福建
+        { name: "泉州市博物馆", location: [24.93, 118.59], url: "泉州市博物馆.html" },
 
         // 其他省份
         { name: "辽宁省博物馆", location: [41.70, 123.46], url: "辽宁省博物馆.html" },
