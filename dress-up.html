@@ -624,15 +624,21 @@
             }
         });
 
+        // 安全的 URL 编码函数，处理中文、空格及特殊字符（如 +）
+        function safeEncodePath(path) {
+            return path.split('/').map(segment => encodeURIComponent(segment)).join('/');
+        }
+
         // 渲染换装物品列表
         function renderItems(cat) {
             itemList.innerHTML = '';
             data[cat].forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
-                const imgPath = item.file.includes('/') ? item.file : `换装衣服/${item.file}`;
+                const rawPath = item.file.includes('/') ? item.file : `换装衣服/${item.file}`;
+                const imgPath = safeEncodePath(rawPath);
                 card.innerHTML = `
-                    <img src="${encodeURI(imgPath)}">
+                    <img src="${imgPath}">
                     <span>${item.name}</span>
                 `;
                 card.onclick = () => {
@@ -649,13 +655,14 @@
             data.furniture.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'furniture-card';
-                const imgPath = item.file.includes('/') ? item.file : `换装衣服/${item.file}`;
+                const rawPath = item.file.includes('/') ? item.file : `换装衣服/${item.file}`;
+                const imgPath = safeEncodePath(rawPath);
                 card.innerHTML = `
-                    <img src="${encodeURI(imgPath)}">
+                    <img src="${imgPath}">
                     <h3>${item.name}</h3>
                 `;
                 card.onclick = () => {
-                    openModal(item.name, encodeURI(imgPath), item.info);
+                    openModal(item.name, imgPath, item.info);
                 };
                 furnitureGrid.appendChild(card);
             });
@@ -701,7 +708,7 @@
             let layerId;
             let targetImg;
             const rawPath = file.includes('/') ? file : `换装衣服/${file}`;
-            const fullPath = encodeURI(rawPath);
+            const fullPath = safeEncodePath(rawPath);
 
             if (cat === 'background') {
                 document.getElementById('layer-background').src = fullPath;
@@ -747,7 +754,7 @@
             const currentSrc = targetImg.getAttribute('src');
             const newSrc = fullPath;
 
-            if (targetImg.style.display !== 'none' && (currentSrc === newSrc || decodeURI(currentSrc) === rawPath)) {
+            if (targetImg.style.display !== 'none' && (currentSrc === newSrc || decodeURIComponent(currentSrc) === rawPath)) {
                 targetImg.style.display = 'none';
                 targetImg.setAttribute('src', ''); 
             } else {
