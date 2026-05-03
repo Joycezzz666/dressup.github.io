@@ -76,10 +76,6 @@
         #layer-acc-ear      { z-index: 11; } 
         #layer-acc-pizi     { z-index: 12; } /* 披子 */
         #layer-acc-shendai  { z-index: 13; } /* 绅带 */
-        #layer-acc-zhihuan  { z-index: 14; } /* 备用指环层，已改为 4 */
-        
-        /* 注意：为了让指环也处于衣服下，我们需要确保 z-index 小于 6 */
-        #layer-acc-zhihuan { z-index: 4; } 
         
         /* 左侧边缘按钮 */
         .side-controls {
@@ -436,7 +432,6 @@
                 <img id="layer-acc-jewelry" class="layer" style="display:none;">
                 <img id="layer-acc-pizi" class="layer" style="display:none;">
                 <img id="layer-acc-shendai" class="layer" style="display:none;">
-                <img id="layer-acc-zhihuan" class="layer" style="display:none;">
             </div>
         </div>
 
@@ -637,7 +632,7 @@
                 card.className = 'item-card';
                 const imgPath = item.file.includes('/') ? item.file : `换装衣服/${item.file}`;
                 card.innerHTML = `
-                    <img src="${imgPath}">
+                    <img src="${encodeURI(imgPath)}">
                     <span>${item.name}</span>
                 `;
                 card.onclick = () => {
@@ -656,11 +651,11 @@
                 card.className = 'furniture-card';
                 const imgPath = item.file.includes('/') ? item.file : `换装衣服/${item.file}`;
                 card.innerHTML = `
-                    <img src="${imgPath}">
+                    <img src="${encodeURI(imgPath)}">
                     <h3>${item.name}</h3>
                 `;
                 card.onclick = () => {
-                    openModal(item.name, imgPath, item.info);
+                    openModal(item.name, encodeURI(imgPath), item.info);
                 };
                 furnitureGrid.appendChild(card);
             });
@@ -705,7 +700,8 @@
         function applyItem(cat, file) {
             let layerId;
             let targetImg;
-            const fullPath = file.includes('/') ? file : `换装衣服/${file}`;
+            const rawPath = file.includes('/') ? file : `换装衣服/${file}`;
+            const fullPath = encodeURI(rawPath);
 
             if (cat === 'background') {
                 document.getElementById('layer-background').src = fullPath;
@@ -747,14 +743,15 @@
             }
 
             // 如果已经显示了同一个文件，则隐藏它（取消选择）
+            // 注意：getAttribute('src') 获取的是原始值，而 .src 获取的是完整 URL
             const currentSrc = targetImg.getAttribute('src');
             const newSrc = fullPath;
 
-            if (targetImg.style.display !== 'none' && currentSrc === newSrc) {
+            if (targetImg.style.display !== 'none' && (currentSrc === newSrc || decodeURI(currentSrc) === rawPath)) {
                 targetImg.style.display = 'none';
-                targetImg.src = ''; // 清除路径
+                targetImg.setAttribute('src', ''); 
             } else {
-                targetImg.src = newSrc;
+                targetImg.setAttribute('src', newSrc);
                 targetImg.style.display = 'block';
             }
         }
