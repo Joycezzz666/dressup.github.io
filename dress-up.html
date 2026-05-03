@@ -16,7 +16,6 @@
             overflow-y: auto;
         }
 
-        
         /* 主换装区域容器 */
         .main-container {
             display: flex;
@@ -59,21 +58,28 @@
             pointer-events: none;
         }
 
+        /* 重新定义的 z-index 层级 */
         #layer-background   { z-index: 1; object-fit: cover; }
         #layer-furniture    { z-index: 2; object-fit: contain; } 
         #layer-base         { z-index: 3; } 
+        /* 镯、臂饰、指环：放在衣服(6)后面 */
+        #layer-acc-arm      { z-index: 4; } 
+        #layer-acc-bracelet { z-index: 4; } 
+        #layer-acc-ring     { z-index: 4; } 
         #layer-acc-jewelry  { z-index: 4; } 
-        #layer-acc-bishi  { z-index: 5; } /* 臂饰*/
-        #layer-shoes        { z-index: 6; } 
-        #layer-acc-zhihuan  { z-index: 7; } /* 指环 ← 放在衣服下面 */
-        #layer-makeup       { z-index: 8; } 
-        #layer-acc-hairpin  { z-index: 9; } 
-        #layer-hair         { z-index: 10; } 
-        #layer-acc-head     { z-index: 11; } 
-        #layer-clothes      { z-index: 12; } /* 衣服 ← 固定在第12层 */
-        #layer-acc-ear      { z-index: 13; } 
-        #layer-acc-pizi     { z-index: 14; } /* 披子 */
-        #layer-acc-shendai  { z-index: 15; } /* 绅带 */
+        #layer-shoes        { z-index: 5; } 
+        #layer-clothes      { z-index: 6; } 
+        #layer-makeup       { z-index: 7; } 
+        #layer-acc-hairpin  { z-index: 8; } 
+        #layer-hair         { z-index: 9; } 
+        #layer-acc-head     { z-index: 10; } 
+        #layer-acc-ear      { z-index: 11; } 
+        #layer-acc-pizi     { z-index: 12; } /* 披子 */
+        #layer-acc-shendai  { z-index: 13; } /* 绅带 */
+        #layer-acc-zhihuan  { z-index: 14; } /* 备用指环层，已改为 4 */
+        
+        /* 注意：为了让指环也处于衣服下，我们需要确保 z-index 小于 6 */
+        #layer-acc-zhihuan { z-index: 4; } 
         
         /* 左侧边缘按钮 */
         .side-controls {
@@ -412,25 +418,25 @@
                 <button class="control-btn" id="btn-bg">切换背景</button>
                 <button class="control-btn active" id="btn-outfit">锦绣换装</button>
             </div>
+
             <div class="canvas-container">
                 <img id="layer-background" class="layer" src="换装衣服/初始背景.jpg">
                 <img id="layer-furniture" class="layer" style="display:none;">
                 <img id="layer-base" class="layer" src="换装衣服/初始形象.png">
-    <!-- 饰品全部放在衣服前面 -->
                 <img id="layer-shoes" class="layer" style="display:none;">
-                <img id="layer-acc-jewelry" class="layer" style="display:none;"> <!-- 镯 -->
-                <img id="layer-acc-bishi" class="layer" style="display:none;">   <!-- ✅ 臂饰 放这里 -->
-                <img id="layer-acc-zhihuan" class="layer" style="display:none;"> <!-- ✅ 指环 放这里 -->
-    <!-- ✅ 衣服放在所有底层饰品后面 -->
                 <img id="layer-clothes" class="layer" style="display:none;">
-    <!-- 上层装饰（头发、妆容、头饰等）放在衣服后面 -->
                 <img id="layer-makeup" class="layer" style="display:none;">
                 <img id="layer-acc-hairpin" class="layer" style="display:none;">
                 <img id="layer-hair" class="layer" style="display:none;">
                 <img id="layer-acc-head" class="layer" style="display:none;">
                 <img id="layer-acc-ear" class="layer" style="display:none;">
+                <img id="layer-acc-arm" class="layer" style="display:none;">
+                <img id="layer-acc-bracelet" class="layer" style="display:none;">
+                <img id="layer-acc-ring" class="layer" style="display:none;">
+                <img id="layer-acc-jewelry" class="layer" style="display:none;">
                 <img id="layer-acc-pizi" class="layer" style="display:none;">
-                <img id="layer-acc-shendai" class="layer" style="display:none;">                
+                <img id="layer-acc-shendai" class="layer" style="display:none;">
+                <img id="layer-acc-zhihuan" class="layer" style="display:none;">
             </div>
         </div>
 
@@ -598,7 +604,7 @@
         document.getElementById('btn-bg').onclick = function() {
             currentMode = 'bg';
             this.classList.add('active');
-            document.getElementById('btn-outfit').class.remove('active');
+            document.getElementById('btn-outfit').classList.remove('active');
             panelTitle.innerText = "切换背景";
             categoryNav.style.display = "none";
             renderItems('background');
@@ -711,7 +717,7 @@
                 layerId = 'layer-shoes';
                 targetImg = document.getElementById(layerId);
             } 
-            // 饰品细分层级逻辑 (发钗、头饰、耳饰、腰饰等可叠加)
+            // 饰品细分层级逻辑 (发钗、头饰、耳饰、披子、绅带等可叠加)
             else if (cat === 'accessories') {
                 if (file.includes('发钗')) {
                     layerId = 'layer-acc-hairpin';
@@ -723,17 +729,14 @@
                     layerId = 'layer-acc-pizi';
                 } else if (file.includes('绅带')) {
                     layerId = 'layer-acc-shendai';
+                } else if (file.includes('镯')) {
+                    layerId = 'layer-acc-bracelet';
+                } else if (file.includes('臂饰')) {
+                    layerId = 'layer-acc-arm';
+                } else if (file.includes('指环')) {
+                    layerId = 'layer-acc-ring';
                 } else {
-    // 镯、臂饰、指环 分开展示，互不覆盖
-                    if (file.includes('镯')) {
-                      layerId = 'layer-acc-jewelry';
-                    } else if (file.includes('臂饰')) {
-                    layerId = 'layer-acc-bishi';
-                    } else if (file.includes('指环')) {
-                    layerId = 'layer-acc-zhihuan';
-                    } else {
                     layerId = 'layer-acc-jewelry';
-                    }
                 }
                 targetImg = document.getElementById(layerId);
             } 
